@@ -12,6 +12,6 @@ import simpledb.systemtest.SimpleDbTestBase;
 public class SampleTest extends SimpleDbTestBase {
 
     public static junit.framework.Test suite() {
-        return new Junit4TestAdapter(SampleTest.class);
+        return new JUnit4TestAdapter(SampleTest.class);
     }
 }

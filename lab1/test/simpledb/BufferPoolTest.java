@@ -11,7 +11,8 @@ import simpledb.systemtest.SimpleDbTestBase;
  */
 public class BufferPoolTest extends SimpleDbTestBase {
 
+
     public static junit.framework.Test suite() {
-        return new Junit4TestAdapter(BufferPoolTest.class);
+        return new JUnit4TestAdapter(BufferPoolTest.class);
     }
 }

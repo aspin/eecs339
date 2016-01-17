@@ -32,7 +32,7 @@ public class BufferPool {
 
     private int currentPages;
     private int maxPages;
-    private HashMap<PageId, Page> pages;
+    private ConcurrentHashMap<PageId, Page> pages; // to be Threadsafe?
 
     /**
      * Creates a BufferPool that caches up to numPages pages.
@@ -42,7 +42,7 @@ public class BufferPool {
     public BufferPool(int numPages) {
         this.currentPages = 0;
         this.maxPages = numPages;
-        this.pages = new HashMap<PageId, Page>();
+        this.pages = new ConcurrentHashMap<PageId, Page>();
     }
 
     public static int getPageSize() {
@@ -86,7 +86,7 @@ public class BufferPool {
             return newPage;
         } else {
             // NOTE: future version will evict here
-            throw new DbException();
+            throw new DbException("Lab1 pages full");
         }
     }
 

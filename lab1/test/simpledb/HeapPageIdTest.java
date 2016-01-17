@@ -52,6 +52,19 @@ public class HeapPageIdTest extends SimpleDbTestBase {
     }
 
     /**
+     * Kevin Chen
+     * Actual unit tests for my implemntation of concating
+     * tableId and pageNumber.
+     */
+    @Test public void testHashCodeConcat() {
+        pid = new HeapPageId(1, 2);
+        assertEquals(pid.hashCode(), 12);
+
+        pid = new HeapPageId(3, 4);
+        assertEquals(pid.hashCode(), 34);
+    }
+
+    /**
      * Unit test for HeapPageId.equals()
      */
     @Test public void equals() {
@@ -83,4 +96,3 @@ public class HeapPageIdTest extends SimpleDbTestBase {
         return new JUnit4TestAdapter(HeapPageIdTest.class);
     }
 }
-
