@@ -122,7 +122,7 @@ public class Catalog {
 
     /** Delete all tables from the catalog */
     public void clear() {
-        this.tables = new HashMap<Integer, Table>();
+        this.tables.clear();
     }
 
     /**
