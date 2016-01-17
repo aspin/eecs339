@@ -28,14 +28,14 @@ public class Tuple implements Serializable {
         // validate td?
         // TODO: decide on style of this or not this
         this.td = td;
-        fields = new Field[td.numFields()];
+        this.fields = new Field[td.numFields()];
     }
 
     /**
      * @return The TupleDesc representing the schema of this tuple.
      */
     public TupleDesc getTupleDesc() {
-        return td;
+        return this.td;
     }
 
     /**
@@ -43,7 +43,7 @@ public class Tuple implements Serializable {
      *         be null.
      */
     public RecordId getRecordId() {
-        return recordId;
+        return this.recordId;
     }
 
     /**
@@ -54,7 +54,7 @@ public class Tuple implements Serializable {
      */
     public void setRecordId(RecordId rid) {
         // validate?
-        recordId = rid;
+        this.recordId = rid;
     }
 
     /**
@@ -67,7 +67,7 @@ public class Tuple implements Serializable {
      */
     public void setField(int i, Field f) {
         // validate?
-        fields[i] = f;
+        this.fields[i] = f;
     }
 
     /**
@@ -78,7 +78,7 @@ public class Tuple implements Serializable {
      */
     public Field getField(int i) {
         // some code goes here
-        return fields[i];
+        return this.fields[i];
     }
 
     /**
@@ -101,7 +101,7 @@ public class Tuple implements Serializable {
     public Iterator<Field> fields()
     {
         // some code goes here
-        return null;
+        return Arrays.asList(this.fields).iterator();
     }
 
     /**
