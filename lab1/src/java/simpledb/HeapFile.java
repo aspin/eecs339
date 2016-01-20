@@ -69,14 +69,15 @@ public class HeapFile implements DbFile {
             byte[] data = new byte[pageSize];
 
             int position = pid.pageNumber() * pageSize;
-            f.read(data, position, pageSize);
+            f.seek(position);
+            f.read(data, 0, pageSize);
 
             HeapPageId hpageId = new HeapPageId(pid.getTableId(), pid.pageNumber());
             return new HeapPage(hpageId, data);
         } catch (Exception e) {
             // TODO: think about this
             e.printStackTrace();
-            return null;
+            throw new IllegalArgumentException();
         }
     }
 
@@ -90,7 +91,7 @@ public class HeapFile implements DbFile {
      * Returns the number of pages in this HeapFile.
      */
     public int numPages() {
-        return (int) Math.ceil(this.file.length() / BufferPool.getPageSize());
+        return (int) Math.ceil(1.0 * this.file.length() / BufferPool.getPageSize());
     }
 
     // see DbFile.java for javadocs
@@ -144,15 +145,19 @@ public class HeapFile implements DbFile {
 
         public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
             if (this.hasNext() && this.currentTuple < this.tuples.size() - 1) {
-                this.currentTuple++;
-                return this.tuples.get(this.currentTuple);
+                return this.getNextTuple();
             } else if (this.hasNext()) {
                 this.currentPage++;
                 this.addTuplesFromPage(this.currentPage);
-                return this.tuples.get(this.currentTuple);
+                return this.getNextTuple();
             } else {
                 throw new NoSuchElementException();
             }
+        }
+
+        private Tuple getNextTuple() {
+            this.currentTuple++;
+            return this.tuples.get(this.currentTuple);
         }
 
         public void rewind() throws DbException, TransactionAbortedException {

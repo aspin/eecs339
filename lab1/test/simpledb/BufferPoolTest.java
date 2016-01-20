@@ -11,6 +11,9 @@ import simpledb.systemtest.SimpleDbTestBase;
  */
 public class BufferPoolTest extends SimpleDbTestBase {
 
+    @Test public void placeholder() {
+        assertEquals(1, 1);
+    }
 
     public static junit.framework.Test suite() {
         return new JUnit4TestAdapter(BufferPoolTest.class);

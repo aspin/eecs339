@@ -74,7 +74,7 @@ public class HeapPage implements Page {
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
     private int getHeaderSize() {
-        return (int) Math.ceil(this.getNumTuples() / 8);
+        return (int) Math.ceil(this.getNumTuples() / 8.0);
     }
 
     /** Return a view of this page before it was modified
@@ -288,6 +288,10 @@ public class HeapPage implements Page {
     public boolean isSlotUsed(int i) {
         int headerByte = (int) Math.floor(i / 8);
         int byteSlot = i % 8;
+
+        if (headerByte >= this.header.length) {
+            throw new IllegalArgumentException("Slot is out of bounds of header.");
+        }
         // NOTE: if slot X is taken, then we compute by seeing
         // if the byte value % 2^(x+1) > 2^X.
         return Byte.toUnsignedInt(this.header[headerByte]) % Math.pow(2, byteSlot + 1) >= Math.pow(2, byteSlot);
