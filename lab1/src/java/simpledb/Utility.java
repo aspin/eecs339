@@ -136,7 +136,7 @@ public class Utility {
         Database.getCatalog().addTable(hf, UUID.randomUUID().toString());
         return hf;
     }
-    
+
     public static HeapFile openHeapFile(int cols, String colPrefix, File f) {
         // create the HeapFile and add it to the catalog
     	TupleDesc td = getTupleDesc(cols, colPrefix);
@@ -153,5 +153,9 @@ public class Utility {
         }
         return out;
     }
-}
 
+    // NOTE: my utilities here!
+    public static int concatIntegers(int x, int y) {
+        return Integer.parseInt("" + x + y);
+    }
+}
