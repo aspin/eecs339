@@ -58,10 +58,10 @@ public class HeapPageIdTest extends SimpleDbTestBase {
      */
     @Test public void testHashCodeConcat() {
         pid = new HeapPageId(1, 2);
-        assertEquals(pid.hashCode(), 12);
+        assertEquals(pid.hashCode(), "12".hashCode());
 
         pid = new HeapPageId(3, 4);
-        assertEquals(pid.hashCode(), 34);
+        assertEquals(pid.hashCode(), "34".hashCode());
     }
 
     /**

@@ -54,6 +54,14 @@ public class Catalog {
         // validate?
         TupleDesc td = file.getTupleDesc();
         Table table = new Table(file, name, td);
+
+        try {
+            // name already exists
+            int existingId = this.getTableId(name);
+            tables.remove(existingId);
+        } catch (Exception e) {
+            // unique name
+        }
         // merge in primary key if it doesn't exist?
         tables.put(file.getId(), table);
     }
