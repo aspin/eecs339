@@ -24,11 +24,13 @@ public class Catalog {
         public DbFile file;
         public String name;
         public TupleDesc td;
+        public String primaryKey;
 
-        public Table(DbFile file, String name, TupleDesc td) {
+        public Table(DbFile file, String name, TupleDesc td, String primaryKey) {
             this.file = file;
             this.name = name;
             this.td = td;
+            this.primaryKey = primaryKey;
         }
     }
 
@@ -38,7 +40,6 @@ public class Catalog {
      */
     public Catalog() {
         this.tables = new HashMap<Integer, Table>();
-        // some code goes here
     }
 
     /**
@@ -53,14 +54,17 @@ public class Catalog {
     public void addTable(DbFile file, String name, String pkeyField) {
         // validate?
         TupleDesc td = file.getTupleDesc();
-        Table table = new Table(file, name, td);
+        Table table = new Table(file, name, td, pkeyField); // TODO: include primary key
 
         try {
             // name already exists
             int existingId = this.getTableId(name);
             tables.remove(existingId);
-        } catch (Exception e) {
+        } catch (NoSuchElementException e) {
             // unique name
+        } catch (Exception e) {
+            // TODO: handle this case
+            e.printStackTrace();
         }
         // merge in primary key if it doesn't exist?
         tables.put(file.getId(), table);
@@ -114,14 +118,13 @@ public class Catalog {
         return this.tables.get(tableid).file;
     }
 
-    // FIXME: what do here
     public String getPrimaryKey(int tableid) {
-        return this.tables.get(tableid).name;
+        return this.tables.get(tableid).primaryKey;
     }
 
-    // NOTE: review the okayness of this (vs. Iterator<int>)
-    public Iterator<Map.Entry<Integer, Table>> tableIdIterator() {
-        return this.tables.entrySet().iterator();
+    // TODO: write test case for me
+    public Iterator<Integer> tableIdIterator() {
+        return this.tables.keySet().iterator();
     }
 
     public String getTableName(int tableid) {

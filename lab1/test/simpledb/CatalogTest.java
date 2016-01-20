@@ -93,6 +93,13 @@ public class CatalogTest extends SimpleDbTestBase {
     	assertEquals(f, Database.getCatalog().getDatabaseFile(id2));
     }
 
+	/**
+	 * KEVIN's tests
+	 */
+	 @Test public void iteratorTest() {
+		 assertEquals(1, 1);
+	 }
+
     /**
      * JUnit suite target
      */
