@@ -40,7 +40,9 @@ public class HeapPageId implements PageId {
      */
     public int hashCode() {
         // TODO: what is this supposed to be?
-        return Integer.valueOf("" + this.tableId + this.pageNumber);
+        String number = "" + this.tableId + this.pageNumber;
+        // return (int) Long.parseLong(number); // FIXME?
+        return number.hashCode();
     }
 
     /**

@@ -11,7 +11,7 @@ public class RecordId implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private int tupleNo;
-    private PageId pageId;
+    private simpledb.PageId pageId;
 
     /**
      * Creates a new RecordId referring to the specified PageId and tuple
@@ -24,7 +24,7 @@ public class RecordId implements Serializable {
      */
 
 
-    public RecordId(PageId pid, int tupleno) {
+    public RecordId(simpledb.PageId pid, int tupleno) {
         this.tupleNo = tupleno;
         this.pageId = pid;
     }
