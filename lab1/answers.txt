@@ -1,0 +1,18 @@
+Lab 1: SimpleDB
+Kevin Chen
+
+# Notes on Design Decisions, API Changes, or Styles
+
+## Java Versions
+I've got only one real change to the project setup. I'm using Java 8 after having consulted with Dipendra on Piazza, and changed the `sourceversion` property in the Ant `build.xml` file appropriately, to `1.8`.
+
+The two main functionalities I took advantage of from Java 8 were `filter` (from the `ArrayList` class, `HeapPage.java:313`) and `Byte.toUnsignedInt` (`HeapPage.java:297`). They were helpful in maintaining the readibility of the code.
+
+## Other Notes
+I added one function to bottom of `Utility.java` for create hash codes. Aside from this, I didn't really change much else besides filling in the requisite code.
+
+# Missing/Incomplete Elements
+I'm fairly certain I've fully completed the lab, as it passes all of the provided unit and e2e tests. Of note is that I did not implement `SeqScan.getTupleDesc` and one other `toString` method. However, these functions are not tested and not specified as needing to be done on Canvas.
+
+# Lab Difficulty
+I thought this lab was fine.
