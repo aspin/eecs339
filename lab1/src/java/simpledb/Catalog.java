@@ -18,7 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Catalog {
 
-    private HashMap<Integer, Table> tables;
+    // Threadsafe annotation
+    private ConcurrentHashMap<Integer, Table> tables;
 
     private class Table {
         public DbFile file;
@@ -39,7 +40,7 @@ public class Catalog {
      * Creates a new, empty catalog.
      */
     public Catalog() {
-        this.tables = new HashMap<Integer, Table>();
+        this.tables = new ConcurrentHashMap<Integer, Table>();
     }
 
     /**
@@ -52,21 +53,21 @@ public class Catalog {
      * @param pkeyField the name of the primary key field
      */
     public void addTable(DbFile file, String name, String pkeyField) {
-        // validate?
+        // TODO: validate data if necessary
+        // TODO: determine what to do if pkeyField empty
         TupleDesc td = file.getTupleDesc();
-        Table table = new Table(file, name, td, pkeyField); // TODO: include primary key
+        Table table = new Table(file, name, td, pkeyField);
 
         try {
-            // name already exists
+            // Name already exists
             int existingId = this.getTableId(name);
             tables.remove(existingId);
         } catch (NoSuchElementException e) {
-            // unique name
+            // Unique name, continue
         } catch (Exception e) {
-            // TODO: handle this case
+            // TODO: handle this case properly
             e.printStackTrace();
         }
-        // merge in primary key if it doesn't exist?
         tables.put(file.getId(), table);
     }
 
@@ -105,6 +106,7 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
+        // TODO: Throw exception if needed
         return this.tables.get(tableid).td;
     }
 
@@ -115,6 +117,7 @@ public class Catalog {
      *     function passed to addTable
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
+        // TODO: Throw exception if needed
         return this.tables.get(tableid).file;
     }
 

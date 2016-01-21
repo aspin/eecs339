@@ -16,7 +16,6 @@ public class HeapPageId implements PageId {
     public HeapPageId(int tableId, int pgNo) {
         this.tableId = tableId;
         this.pageNumber = pgNo;
-        // some code goes here
     }
 
     /** @return the table associated with this PageId */
@@ -39,10 +38,7 @@ public class HeapPageId implements PageId {
      * @see BufferPool
      */
     public int hashCode() {
-        // TODO: what is this supposed to be?
-        String number = "" + this.tableId + this.pageNumber;
-        // return (int) Long.parseLong(number); // FIXME?
-        return number.hashCode();
+        return Utility.createCombinationHash(this.tableId, this.pageNumber);
     }
 
     /**
@@ -55,7 +51,7 @@ public class HeapPageId implements PageId {
     public boolean equals(Object o) {
         if (o instanceof HeapPageId) {
             HeapPageId compare = (HeapPageId) o;
-            return (this.tableId == compare.tableId) && (this.pageNumber == compare.pageNumber);
+            return (this.tableId == compare.getTableId()) && (this.pageNumber == compare.pageNumber());
         } else {
             return false;
         }

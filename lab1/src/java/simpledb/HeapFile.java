@@ -110,11 +110,11 @@ public class HeapFile implements DbFile {
         // not necessary for lab1
     }
 
-    // TODO: helper class
+    // Helper Iterator Class
+    // TODO: consider pulling out into separate file
     private class HeapFileIterator implements DbFileIterator {
         private TransactionId tid;
         private HeapFile heapFile;
-        // private Tuple[] tuples;
         private ArrayList<Tuple> tuples;
 
         private int currentPage;
@@ -136,7 +136,7 @@ public class HeapFile implements DbFile {
             this.tuples.clear();
             HeapPageId nextPageId = new HeapPageId(this.heapFile.getId(), pageNumber);
             HeapPage nextPage = (HeapPage) Database.getBufferPool().getPage(this.tid, nextPageId, Permissions.READ_ONLY);
-            nextPage.iterator().forEachRemaining(this.tuples::add); // FIXME
+            nextPage.iterator().forEachRemaining(this.tuples::add);
         }
 
         public boolean hasNext() throws DbException, TransactionAbortedException {

@@ -11,7 +11,7 @@ public class RecordId implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private int tupleNo;
-    private simpledb.PageId pageId;
+    private PageId pageId;
 
     /**
      * Creates a new RecordId referring to the specified PageId and tuple
@@ -24,7 +24,7 @@ public class RecordId implements Serializable {
      */
 
 
-    public RecordId(simpledb.PageId pid, int tupleno) {
+    public RecordId(PageId pid, int tupleno) {
         this.tupleNo = tupleno;
         this.pageId = pid;
     }
@@ -51,7 +51,6 @@ public class RecordId implements Serializable {
      */
     @Override
     public boolean equals(Object o) {
-        // TODO: check merge
         if (o instanceof RecordId) {
             RecordId compare = (RecordId) o;
             return compare.tupleno() == this.tupleNo && compare.getPageId().equals(this.pageId);
@@ -68,8 +67,7 @@ public class RecordId implements Serializable {
      */
     @Override
     public int hashCode() {
-        // TODO: hash this out!
-        return Utility.concatIntegers(this.pageId.hashCode(), this.tupleNo);
+        return Utility.createCombinationHash(this.pageId.hashCode(), this.tupleNo);
     }
 
 }

@@ -96,9 +96,8 @@ public class HeapPage implements Page {
     }
 
     public void setBeforeImage() {
-        synchronized(oldDataLock)
-        {
-        oldData = getPageData().clone();
+        synchronized(oldDataLock) {
+            oldData = getPageData().clone();
         }
     }
 
@@ -273,6 +272,7 @@ public class HeapPage implements Page {
      * Returns the number of empty slots on this page.
      */
     public int getNumEmptySlots() {
+        // TODO: might not be the most efficient implementation. Consider thinking of a bitwise one.
         int sum = 0;
         for(int i = 0; i < this.getNumTuples(); i++) {
             if (!isSlotUsed(i)) {
@@ -293,7 +293,7 @@ public class HeapPage implements Page {
             throw new IllegalArgumentException("Slot is out of bounds of header.");
         }
         // NOTE: if slot X is taken, then we compute by seeing
-        // if the byte value % 2^(x+1) > 2^X.
+        // if the byte value % 2^(X+1) > 2^X.
         return Byte.toUnsignedInt(this.header[headerByte]) % Math.pow(2, byteSlot + 1) >= Math.pow(2, byteSlot);
     }
 
@@ -310,7 +310,6 @@ public class HeapPage implements Page {
      * (note that this iterator shouldn't return tuples in empty slots!)
      */
     public Iterator<Tuple> iterator() {
-        //TODO: check for emptys
         return Arrays.asList(this.tuples).stream().filter(tuple -> tuple != null).iterator();
     }
 

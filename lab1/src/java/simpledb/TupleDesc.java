@@ -34,7 +34,7 @@ public class TupleDesc implements Serializable {
             return fieldName + "(" + fieldType + ")";
         }
 
-        // Adding this method for equalit ytest
+        // Adding this method for equality test
         public boolean equals(Object o) {
             boolean equality = false;
             if (o instanceof TDItem) {
@@ -137,8 +137,6 @@ public class TupleDesc implements Serializable {
      *             if no field with a matching name is found.
      */
     public int fieldNameToIndex(String name) throws NoSuchElementException {
-        // consider refactor of this array into a list
-        // Arrays.asList(this.items).contains // figure away to do this?
         for(int i = 0; i < this.items.length; i++) {
             if (this.items[i].fieldName != null && this.items[i].fieldName.equals(name)) {
                 return i;
@@ -154,7 +152,7 @@ public class TupleDesc implements Serializable {
     public int getSize() {
         int size = 0;
         for(TDItem item: this.items) {
-            size += 4; // FIXME: this is almost certainly wrong??
+            size += 4; // TODO: determine if this needs fixing
         }
         return size;
     }
@@ -205,7 +203,6 @@ public class TupleDesc implements Serializable {
      * @return true if the object is equal to this TupleDesc.
      */
     public boolean equals(Object o) {
-        // prob add some text
         boolean equality = false;
         if (o instanceof TupleDesc) {
             TupleDesc compare = (TupleDesc) o;

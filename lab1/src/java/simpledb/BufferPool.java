@@ -18,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BufferPool {
     /** Bytes per page, including header. */
     private static final int PAGE_SIZE = 4096;
-
     private static int pageSize = PAGE_SIZE;
 
     /** Default number of pages passed to the constructor. This is used by
@@ -99,7 +98,7 @@ public class BufferPool {
      * @param tid the ID of the transaction requesting the unlock
      * @param pid the ID of the page to unlock
      */
-    public  void releasePage(TransactionId tid, PageId pid) {
+    public void releasePage(TransactionId tid, PageId pid) {
         // some code goes here
         // not necessary for lab1|lab2
     }

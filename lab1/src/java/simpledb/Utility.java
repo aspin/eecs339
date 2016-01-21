@@ -154,8 +154,8 @@ public class Utility {
         return out;
     }
 
-    // NOTE: my utilities here!
-    public static int concatIntegers(int x, int y) {
-        return Integer.parseInt("" + x + y);
+    // NOTE: Kevin's utilities here
+    public static int createCombinationHash(int x, int y) {
+        return ("" + x + y).hashCode();
     }
 }
