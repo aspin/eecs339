@@ -11,6 +11,11 @@ public class Aggregate extends Operator {
 
     private static final long serialVersionUID = 1L;
 
+    private DbIterator child;
+    private int aggregateField;
+    private int groupField;
+    private Aggregator.Op op;
+
     /**
      * Constructor.
      * 
@@ -30,7 +35,10 @@ public class Aggregate extends Operator {
      *            The aggregation operator to use
      */
     public Aggregate(DbIterator child, int afield, int gfield, Aggregator.Op aop) {
-	// some code goes here
+        this.child = child;
+        this.aggregateField = afield;
+        this.groupField = gfield;
+        this.op = aop;
     }
 
     /**
@@ -39,8 +47,7 @@ public class Aggregate extends Operator {
      *         {@link simpledb.Aggregator#NO_GROUPING}
      * */
     public int groupField() {
-	// some code goes here
-	return -1;
+    	return -1;
     }
 
     /**
