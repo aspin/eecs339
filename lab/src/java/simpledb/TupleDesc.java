@@ -238,7 +238,10 @@ public class TupleDesc implements Serializable {
      * @return String describing this descriptor.
      */
     public String toString() {
-        // some code goes here
-        return "";
+        String output = "";
+        for(int i = 0; i < this.numFields(); i++) {
+            output += String.format("%s[%d](%s), ", this.getFieldType(i), i, this.getFieldName(i));
+        }
+        return output;
     }
 }

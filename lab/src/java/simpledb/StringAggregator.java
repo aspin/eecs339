@@ -72,24 +72,7 @@ public class StringAggregator implements Aggregator {
      */
     public DbIterator iterator() {
         ArrayList<Tuple> aggregateTuples = new ArrayList<Tuple>();
-
-        // Construct descriptor
-        Type[] types;
-        String[] fields;
-        if (this.groupByField == NO_GROUPING) {
-            types = new Type[1];
-            fields = new String[1];
-            types[0] = Type.INT_TYPE;
-            fields[0] = this.op.toString();
-        } else {
-            types = new Type[2];
-            fields = new String[2];
-            types[0] = this.groupByFieldType;
-            fields[0] = this.groupByFieldName;
-            types[1] = Type.INT_TYPE;
-            fields[1] = this.op.toString();
-        }
-        TupleDesc tupleDesc = new TupleDesc(types, fields);
+        TupleDesc tupleDesc = this.getTupleDesc();
 
         for(Map.Entry<Field, Integer> entry : this.groups.entrySet()) {
             Field key = entry.getKey();
@@ -105,6 +88,28 @@ public class StringAggregator implements Aggregator {
             aggregateTuples.add(tuple);
         }
         return new TupleIterator(tupleDesc, aggregateTuples);
+    }
+
+    public TupleDesc getTupleDesc() {
+        // Construct descriptor
+        Type[] types;
+        String[] fields;
+        if (this.groupByField == NO_GROUPING) {
+            types = new Type[1];
+            fields = new String[1];
+            types[0] = Type.INT_TYPE;
+//            fields[0] = this.op.toString();
+            fields[0] = null;
+        } else {
+            types = new Type[2];
+            fields = new String[2];
+            types[0] = this.groupByFieldType;
+            fields[0] = this.groupByFieldName;
+            types[1] = Type.INT_TYPE;
+//            fields[1] = this.op.toString();
+            fields[1] = null;
+        }
+        return new TupleDesc(types, fields);
     }
 
 }

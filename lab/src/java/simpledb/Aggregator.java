@@ -81,5 +81,10 @@ public interface Aggregator extends Serializable {
      * @see simpledb.TupleIterator for a possible helper
      */
     public DbIterator iterator();
-    
+
+    /**
+     * Get newly merged tuple descriptor.
+     * @return TupleDesc merged tuple descriptor
+     */
+    public TupleDesc getTupleDesc();
 }

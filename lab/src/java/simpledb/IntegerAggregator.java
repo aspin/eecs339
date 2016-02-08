@@ -56,7 +56,7 @@ public class IntegerAggregator implements Aggregator {
      *            the Tuple containing an aggregate field and a group-by field
      */
     public void mergeTupleIntoGroup(Tuple tup) {
-        if (this.groupByFieldName == null) {
+        if (this.groupByFieldName == null && this.groupByField != NO_GROUPING) {
             this.groupByFieldName = tup.getTupleDesc().getFieldName(this.groupByField);
         }
 
@@ -108,11 +108,8 @@ public class IntegerAggregator implements Aggregator {
                 returnValue = Math.max(current, addition);
                 break;
             case SUM:
-                returnValue = current + addition;
-                break;
             case AVG:
-                int count = this.counts.get(key);
-                returnValue = (current * count + addition) / (count + 1);
+                returnValue = current + addition;
                 break;
         }
         return returnValue;
@@ -127,29 +124,17 @@ public class IntegerAggregator implements Aggregator {
      *         the constructor.
      */
     public DbIterator iterator() {
+        // TODO: This current shares a ton of code of with StringAggregator.
+        // Refactor?
         ArrayList<Tuple> aggregateTuples = new ArrayList<Tuple>();
-
-        // Construct descriptor
-        Type[] types;
-        String[] fields;
-        if (this.groupByField == NO_GROUPING) {
-            types = new Type[1];
-            fields = new String[1];
-            types[0] = Type.INT_TYPE;
-            fields[0] = this.op.toString();
-        } else {
-            types = new Type[2];
-            fields = new String[2];
-            types[0] = this.groupByFieldType;
-            fields[0] = this.groupByFieldName;
-            types[1] = Type.INT_TYPE;
-            fields[1] = this.op.toString();
-        }
-        TupleDesc tupleDesc = new TupleDesc(types, fields);
+        TupleDesc tupleDesc = this.getTupleDesc();
 
         for(Map.Entry<Field, Integer> entry : this.groups.entrySet()) {
             Field key = entry.getKey();
             Integer value = entry.getValue();
+            if (this.op == Op.AVG) {
+                value /= this.counts.get(key);
+            }
             Tuple tuple = new Tuple(tupleDesc);
 
             if (this.groupByField == NO_GROUPING) {
@@ -161,6 +146,28 @@ public class IntegerAggregator implements Aggregator {
             aggregateTuples.add(tuple);
         }
         return new TupleIterator(tupleDesc, aggregateTuples);
+    }
+
+
+    public TupleDesc getTupleDesc() {
+        Type[] types;
+        String[] fields;
+        if (this.groupByField == NO_GROUPING) {
+            types = new Type[1];
+            fields = new String[1];
+            types[0] = Type.INT_TYPE;
+//            fields[0] = this.op.toString(); // I mean...
+            fields[0] = null;
+        } else {
+            types = new Type[2];
+            fields = new String[2];
+            types[0] = this.groupByFieldType;
+            fields[0] = this.groupByFieldName;
+            types[1] = Type.INT_TYPE;
+//            fields[1] = this.op.toString();
+            fields[1] = null;
+        }
+        return new TupleDesc(types, fields);
     }
 
 }
