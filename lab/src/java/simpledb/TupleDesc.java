@@ -39,11 +39,7 @@ public class TupleDesc implements Serializable {
             boolean equality = false;
             if (o instanceof TDItem) {
                 TDItem compare = (TDItem) o;
-                boolean sameType = this.fieldType.equals(compare.fieldType);
-                boolean sameName = (this.fieldName == null && compare.fieldName == null) || this.fieldName.equals(compare.fieldName);
-                if (sameType && sameName) {
-                    equality = true;
-                }
+                equality = this.fieldType.equals(compare.fieldType);
             }
             return equality;
         }

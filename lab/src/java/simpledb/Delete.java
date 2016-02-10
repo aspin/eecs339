@@ -10,6 +10,11 @@ public class Delete extends Operator {
 
     private static final long serialVersionUID = 1L;
 
+    private TransactionId transactionId;
+    private DbIterator child;
+
+    private TupleDesc resultDescriptor;
+    private boolean fetched;
     /**
      * Constructor specifying the transaction that this delete belongs to as
      * well as the child to read from.
@@ -20,24 +25,32 @@ public class Delete extends Operator {
      *            The child operator from which to read tuples for deletion
      */
     public Delete(TransactionId t, DbIterator child) {
-        // some code goes here
+        this.transactionId = t;
+        this.child = child;
+
+        Type[] types = new Type[] { Type.INT_TYPE };
+        String[] fields = new String[] { null };
+        this.resultDescriptor = new TupleDesc(types, fields);
+        this.fetched = false;
     }
 
     public TupleDesc getTupleDesc() {
-        // some code goes here
-        return null;
+        return this.resultDescriptor;
     }
 
     public void open() throws DbException, TransactionAbortedException {
-        // some code goes here
+        this.child.open();
+        super.open();
     }
 
     public void close() {
-        // some code goes here
+        super.close();
+        this.child.close();
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
-        // some code goes here
+        this.child.rewind();
+        this.fetched = false;
     }
 
     /**
@@ -50,19 +63,35 @@ public class Delete extends Operator {
      * @see BufferPool#deleteTuple
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
-        // some code goes here
-        return null;
+        if (!this.fetched) {
+            int count = 0;
+            while (this.child.hasNext()) {
+                Tuple tuple = this.child.next();
+                try {
+                    Database.getBufferPool().deleteTuple(this.transactionId, tuple);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new TransactionAbortedException();
+                }
+                count++;
+            }
+            Tuple resultTuple = new Tuple(this.resultDescriptor);
+            resultTuple.setField(0, new IntField(count));
+            this.fetched = true;
+            return resultTuple;
+        } else {
+            return null;
+        }
     }
 
     @Override
     public DbIterator[] getChildren() {
-        // some code goes here
-        return null;
+        return new DbIterator[] { this.child };
     }
 
     @Override
     public void setChildren(DbIterator[] children) {
-        // some code goes here
+        this.child = children[0];
     }
 
 }

@@ -164,7 +164,10 @@ public class HeapFile implements DbFile {
         public void open() throws DbException, TransactionAbortedException {
             this.tuples = new ArrayList<Tuple>();
             this.currentPage = 0;
-            this.addTuplesFromPage(this.currentPage);
+            while (this.currentPage < this.heapFile.numPages()) {
+                this.addTuplesFromPage(currentPage);
+                currentPage++;
+            }
         }
 
         private void addTuplesFromPage (int pageNumber) throws DbException, TransactionAbortedException {
@@ -176,15 +179,11 @@ public class HeapFile implements DbFile {
         }
 
         public boolean hasNext() throws DbException, TransactionAbortedException {
-            return this.tuples != null  && (this.currentPage < this.heapFile.numPages() - 1 || this.currentTuple < this.tuples.size() - 1);
+            return this.tuples != null && this.currentTuple < this.tuples.size() - 1;
         }
 
         public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
-            if (this.hasNext() && this.currentTuple < this.tuples.size() - 1) {
-                return this.getNextTuple();
-            } else if (this.hasNext()) {
-                this.currentPage++;
-                this.addTuplesFromPage(this.currentPage);
+            if (this.hasNext()) {
                 return this.getNextTuple();
             } else {
                 throw new NoSuchElementException();
