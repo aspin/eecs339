@@ -1,0 +1,21 @@
+Lab 2: SimpleDB
+Kevin Chen
+
+# Notes on Design Decisions or API Changes
+
+## Java Versions
+As in lab 1, I'm using Java 8, and changed the `sourceversion` property in the Ant `build.xml` to `1.8`.
+
+Aside from the methods from last lab, I'm also using `iterator.forEachRemaining` to add all remaining items to an `ArrayList` (`HeapFile.java:172`).
+
+## Join Algorithm
+I used the recommended nested loops join from the lab description.
+
+## Eviction Policy
+My current eviction policy is to select a random page from the `BufferPool` to evict. I figured it was most fair to give each page in the pool an equal chance to survive, though a potentially more serious algorithm would be LRU (Least Recently Used); keeping track of when each page was last accessed in the `BufferPool`.
+
+# Missing / Incomplete Elements
+I'm pretty sure I've completed this lab.
+
+# Lab Difficulty
+I spent about 2 hours longer than I should have figuring how the `EvictionTest` (I was always allocating an additional page on `writePage` so `SeqScan` never finished...), but outside of that I thought this lab was fine.
