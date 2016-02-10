@@ -238,7 +238,7 @@ public class HeapPage implements Page {
     public void deleteTuple(Tuple t) throws DbException {
         RecordId recordId = t.getRecordId();
         int slot = recordId.tupleno();
-        if (this.pid != recordId.getPageId()) {
+        if (!this.pid.equals(recordId.getPageId())) {
             throw new DbException("Tuple does not exist on page");
         } else if (!isSlotUsed(slot)) {
             throw new DbException("Slot already empty");
@@ -262,9 +262,9 @@ public class HeapPage implements Page {
             throw new DbException("Tuple descriptor mismatch");
         }
         int slot = this.getFirstEmptySlot();
-        this.tuples[slot] = t;
         RecordId recordId = new RecordId(this.pid, slot);
-        this.tuples[slot].setRecordId(recordId);
+        t.setRecordId(recordId);
+        this.tuples[slot] = t;
         this.markSlotUsed(slot, true);
     }
 

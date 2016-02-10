@@ -2,6 +2,7 @@ package simpledb;
 
 import java.io.*;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -31,7 +32,7 @@ public class BufferPool {
 
     private int currentPages;
     private int maxPages;
-    private ConcurrentHashMap<PageId, Page> pages; // to be Threadsafe?
+    private ConcurrentHashMap<PageId, Page> bufferPages; // to be Threadsafe?
 
     /**
      * Creates a BufferPool that caches up to numPages pages.
@@ -41,7 +42,7 @@ public class BufferPool {
     public BufferPool(int numPages) {
         this.currentPages = 0;
         this.maxPages = numPages;
-        this.pages = new ConcurrentHashMap<PageId, Page>();
+        this.bufferPages = new ConcurrentHashMap<PageId, Page>();
     }
 
     public static int getPageSize() {
@@ -76,11 +77,11 @@ public class BufferPool {
     public Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // TODO: Transcation and permission validation?
-        if (this.pages.containsKey(pid)) {
-            return this.pages.get(pid);
+        if (this.bufferPages.containsKey(pid)) {
+            return this.bufferPages.get(pid);
         } else if (currentPages < maxPages) {
             Page newPage = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
-            this.pages.put(pid, newPage);
+            this.bufferPages.put(pid, newPage);
             currentPages++;
             return newPage;
         } else {
@@ -150,8 +151,8 @@ public class BufferPool {
      */
     public void insertTuple(TransactionId tid, int tableId, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
-        // some code goes here
-        // not necessary for lab1
+        ArrayList<Page> dirtyPages = Database.getCatalog().getDatabaseFile(tableId).insertTuple(tid, t);
+        this.markDirty(tid, dirtyPages);
     }
 
     /**
@@ -169,8 +170,20 @@ public class BufferPool {
      */
     public  void deleteTuple(TransactionId tid, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
-        // some code goes here
-        // not necessary for lab1
+        int tableId = t.getRecordId().getPageId().getTableId();
+        ArrayList<Page> dirtyPages = Database.getCatalog().getDatabaseFile(tableId).deleteTuple(tid, t);
+        this.markDirty(tid, dirtyPages);
+    }
+
+    /*
+     * Marks page array to be dirty and places them into the buffer pool.
+     */
+    private void markDirty(TransactionId transcationId, ArrayList<Page> pages) {
+        for(Page page : pages) {
+            HeapPage heapPage = (HeapPage) page;
+            heapPage.markDirty(true, transcationId);
+            this.bufferPages.put(heapPage.getId(), heapPage);
+        }
     }
 
     /**
