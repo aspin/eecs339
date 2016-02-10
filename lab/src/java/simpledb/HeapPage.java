@@ -22,6 +22,8 @@ public class HeapPage implements Page {
     byte[] oldData;
     private final Byte oldDataLock = new Byte((byte)0);
 
+    TransactionId lastDirtyTranscation;
+
     /**
      * Create a HeapPage from a set of bytes of data read from disk.
      * The format of a HeapPage is a set of header bytes indicating
@@ -234,8 +236,16 @@ public class HeapPage implements Page {
      * @param t The tuple to delete
      */
     public void deleteTuple(Tuple t) throws DbException {
-        // some code goes here
-        // not necessary for lab1
+        RecordId recordId = t.getRecordId();
+        int slot = recordId.tupleno();
+        if (this.pid != recordId.getPageId()) {
+            throw new DbException("Tuple does not exist on page");
+        } else if (!isSlotUsed(slot)) {
+            throw new DbException("Slot already empty");
+        }
+
+        this.tuples[slot] = null;
+        this.markSlotUsed(slot, false);
     }
 
     /**
@@ -246,8 +256,16 @@ public class HeapPage implements Page {
      * @param t The tuple to add.
      */
     public void insertTuple(Tuple t) throws DbException {
-        // some code goes here
-        // not necessary for lab1
+        if (this.getNumEmptySlots() == 0) {
+            throw new DbException("Page is full");
+        } else if (!this.td.equals(t.getTupleDesc())) {
+            throw new DbException("Tuple descriptor mismatch");
+        }
+        int slot = this.getFirstEmptySlot();
+        this.tuples[slot] = t;
+        RecordId recordId = new RecordId(this.pid, slot);
+        this.tuples[slot].setRecordId(recordId);
+        this.markSlotUsed(slot, true);
     }
 
     /**
@@ -255,24 +273,24 @@ public class HeapPage implements Page {
      * that did the dirtying
      */
     public void markDirty(boolean dirty, TransactionId tid) {
-        // some code goes here
-	// not necessary for lab1
+        if (dirty) {
+            this.lastDirtyTranscation = tid;
+        } else {
+            this.lastDirtyTranscation = null;
+        }
     }
 
     /**
      * Returns the tid of the transaction that last dirtied this page, or null if the page is not dirty
      */
     public TransactionId isDirty() {
-        // some code goes here
-	// Not necessary for lab1
-        return null;
+        return this.lastDirtyTranscation; // Handle null case?
     }
 
     /**
      * Returns the number of empty slots on this page.
      */
     public int getNumEmptySlots() {
-        // TODO: might not be the most efficient implementation. Consider thinking of a bitwise one.
         int sum = 0;
         for(int i = 0; i < this.getNumTuples(); i++) {
             if (!isSlotUsed(i)) {
@@ -280,6 +298,18 @@ public class HeapPage implements Page {
             }
         }
         return sum;
+    }
+
+    /**
+     * Returns first empty slot on page.
+     */
+    private int getFirstEmptySlot() throws DbException {
+        for(int i = 0; i < this.getNumTuples(); i++) {
+            if (!isSlotUsed(i)) {
+                return i;
+            }
+        }
+        throw new DbException("Page is full");
     }
 
     /**
@@ -301,8 +331,16 @@ public class HeapPage implements Page {
      * Abstraction to fill or clear a slot on this page.
      */
     private void markSlotUsed(int i, boolean value) {
-        // some code goes here
-        // not necessary for lab1
+        int headerByte = (int) Math.floor(i / 8);
+        int byteSlot = i % 8;
+
+        if (value && !isSlotUsed(i)) {
+            this.header[headerByte] += Math.pow(2, byteSlot);
+        } else if (!value && isSlotUsed(i)) {
+            this.header[headerByte] -= Math.pow(2, byteSlot);
+        } else {
+            // header is already in desired state
+        }
     }
 
     /**
