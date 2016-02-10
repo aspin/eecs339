@@ -164,15 +164,14 @@ public class HeapFile implements DbFile {
         public void open() throws DbException, TransactionAbortedException {
             this.tuples = new ArrayList<Tuple>();
             this.currentPage = 0;
+            this.currentTuple = -1;
             while (this.currentPage < this.heapFile.numPages()) {
-                this.addTuplesFromPage(currentPage);
-                currentPage++;
+                this.addTuplesFromPage(this.currentPage);
+                this.currentPage++;
             }
         }
 
         private void addTuplesFromPage (int pageNumber) throws DbException, TransactionAbortedException {
-            this.currentTuple = -1;
-            this.tuples.clear();
             HeapPageId nextPageId = new HeapPageId(this.heapFile.getId(), pageNumber);
             HeapPage nextPage = (HeapPage) Database.getBufferPool().getPage(this.tid, nextPageId, Permissions.READ_ONLY);
             nextPage.iterator().forEachRemaining(this.tuples::add);
