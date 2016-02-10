@@ -174,7 +174,6 @@ public class HeapFile implements DbFile {
         }
 
         public boolean hasNext() throws DbException, TransactionAbortedException {
-            // REFACTOR ME
             if (this.tuples != null && this.tuples.hasNext()) {
                 return true;
             } else if (this.tuples != null && this.currentPage < this.heapFile.numPages() - 1) {
@@ -186,12 +185,9 @@ public class HeapFile implements DbFile {
         }
 
         public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
-            if (this.tuples == null) {
-                throw new NoSuchElementException();
-            }
-            if (this.tuples.hasNext()) {
+            if (this.tuples != null && this.tuples.hasNext()) {
                 return this.tuples.next();
-            } else if (!this.tuples.hasNext() && this.currentPage < this.heapFile.numPages() - 1) {
+            } else if (this.tuples != null && !this.tuples.hasNext() && this.currentPage < this.heapFile.numPages() - 1) {
                 this.currentPage++;
                 this.tuples = this.addTuplesFromPage(this.currentPage).iterator();
                 if (this.tuples.hasNext()) {
@@ -199,7 +195,6 @@ public class HeapFile implements DbFile {
                 } else {
                     throw new NoSuchElementException();
                 }
-
             } else {
                 throw new NoSuchElementException();
             }
