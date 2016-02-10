@@ -89,7 +89,7 @@ public class HeapFile implements DbFile {
         byte[] data = new byte[pageSize];
         data = page.getPageData();
 
-        int position = this.numPages() * pageSize;
+        int position = page.getId().pageNumber() * pageSize;
         f.seek(position);
         f.write(data, 0, pageSize);
         f.close();
@@ -151,10 +151,9 @@ public class HeapFile implements DbFile {
     private class HeapFileIterator implements DbFileIterator {
         private TransactionId tid;
         private HeapFile heapFile;
-        private ArrayList<Tuple> tuples;
+        private Iterator<Tuple> tuples;
 
         private int currentPage;
-        private int currentTuple;
 
         HeapFileIterator(TransactionId tid, HeapFile heapFile) {
             this.tid = tid;
@@ -162,36 +161,48 @@ public class HeapFile implements DbFile {
         }
 
         public void open() throws DbException, TransactionAbortedException {
-            this.tuples = new ArrayList<Tuple>();
             this.currentPage = 0;
-            this.currentTuple = -1;
-            while (this.currentPage < this.heapFile.numPages()) {
-                this.addTuplesFromPage(this.currentPage);
-                this.currentPage++;
-            }
+            this.tuples = this.addTuplesFromPage(this.currentPage).iterator();
         }
 
-        private void addTuplesFromPage (int pageNumber) throws DbException, TransactionAbortedException {
+        private ArrayList<Tuple> addTuplesFromPage (int pageNumber) throws DbException, TransactionAbortedException {
+            ArrayList<Tuple> tuples = new ArrayList<Tuple>();
             HeapPageId nextPageId = new HeapPageId(this.heapFile.getId(), pageNumber);
             HeapPage nextPage = (HeapPage) Database.getBufferPool().getPage(this.tid, nextPageId, Permissions.READ_ONLY);
-            nextPage.iterator().forEachRemaining(this.tuples::add);
+            nextPage.iterator().forEachRemaining(tuples::add);
+            return tuples;
         }
 
         public boolean hasNext() throws DbException, TransactionAbortedException {
-            return this.tuples != null && this.currentTuple < this.tuples.size() - 1;
-        }
-
-        public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
-            if (this.hasNext()) {
-                return this.getNextTuple();
+            // REFACTOR ME
+            if (this.tuples != null && this.tuples.hasNext()) {
+                return true;
+            } else if (this.tuples != null && this.currentPage < this.heapFile.numPages() - 1) {
+                ArrayList<Tuple> tuples = this.addTuplesFromPage(this.currentPage + 1);
+                return tuples.size() > 0;
             } else {
-                throw new NoSuchElementException();
+                return false;
             }
         }
 
-        private Tuple getNextTuple() {
-            this.currentTuple++;
-            return this.tuples.get(this.currentTuple);
+        public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
+            if (this.tuples == null) {
+                throw new NoSuchElementException();
+            }
+            if (this.tuples.hasNext()) {
+                return this.tuples.next();
+            } else if (!this.tuples.hasNext() && this.currentPage < this.heapFile.numPages() - 1) {
+                this.currentPage++;
+                this.tuples = this.addTuplesFromPage(this.currentPage).iterator();
+                if (this.tuples.hasNext()) {
+                    return this.next();
+                } else {
+                    throw new NoSuchElementException();
+                }
+
+            } else {
+                throw new NoSuchElementException();
+            }
         }
 
         public void rewind() throws DbException, TransactionAbortedException {

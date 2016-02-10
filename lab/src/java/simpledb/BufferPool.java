@@ -3,6 +3,7 @@ package simpledb;
 import java.io.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -30,9 +31,8 @@ public class BufferPool {
      * Member classes
      **/
 
-    private int currentPages;
     private int maxPages;
-    private ConcurrentHashMap<PageId, Page> bufferPages; // to be Threadsafe?
+    private ConcurrentHashMap<PageId, Page> bufferPages;
 
     /**
      * Creates a BufferPool that caches up to numPages pages.
@@ -40,7 +40,6 @@ public class BufferPool {
      * @param numPages maximum number of pages in this buffer pool.
      */
     public BufferPool(int numPages) {
-        this.currentPages = 0;
         this.maxPages = numPages;
         this.bufferPages = new ConcurrentHashMap<PageId, Page>();
     }
@@ -79,15 +78,23 @@ public class BufferPool {
         // TODO: Transcation and permission validation?
         if (this.bufferPages.containsKey(pid)) {
             return this.bufferPages.get(pid);
-        } else if (currentPages < maxPages) {
+        } else {
+            if (this.bufferPages.size() >= this.maxPages) {
+                this.evictPage();
+            }
             Page newPage = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
             this.bufferPages.put(pid, newPage);
-            currentPages++;
             return newPage;
-        } else {
-            // NOTE: future version will evict here
-            throw new DbException("Lab1 pages full");
         }
+//        } else if (this.currentPages < this.maxPages) {
+//            Page newPage = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+//            this.bufferPages.put(pid, newPage);
+//            this.currentPages++;
+//            return newPage;
+//        } else {
+//            this.evictPage();
+//            return this.getPage(tid, pid, perm);
+//        }
     }
 
     /**
@@ -192,9 +199,9 @@ public class BufferPool {
      *     break simpledb if running in NO STEAL mode.
      */
     public synchronized void flushAllPages() throws IOException {
-        // some code goes here
-        // not necessary for lab1
-
+        for(PageId pageId : this.bufferPages.keySet()) {
+            this.flushPage(pageId);
+        }
     }
 
     /** Remove the specific page id from the buffer pool.
@@ -206,8 +213,7 @@ public class BufferPool {
         are removed from the cache so they can be reused safely
     */
     public synchronized void discardPage(PageId pid) {
-        // some code goes here
-        // not necessary for lab1
+        this.bufferPages.remove(pid);
     }
 
     /**
@@ -215,8 +221,10 @@ public class BufferPool {
      * @param pid an ID indicating the page to flush
      */
     private synchronized  void flushPage(PageId pid) throws IOException {
-        // some code goes here
-        // not necessary for lab1
+        int tableId = pid.getTableId();
+        Page page = this.bufferPages.get(pid);
+        Database.getCatalog().getDatabaseFile(tableId).writePage(page);
+        page.markDirty(false, page.isDirty());
     }
 
     /** Write all pages of the specified transaction to disk.
@@ -230,9 +238,28 @@ public class BufferPool {
      * Discards a page from the buffer pool.
      * Flushes the page to disk to ensure dirty pages are updated on disk.
      */
-    private synchronized  void evictPage() throws DbException {
-        // some code goes here
-        // not necessary for lab1
+    private synchronized void evictPage() throws DbException {
+        // pick first page to evict
+//        for (PageId pageId : this.bufferPages.keySet()) {
+//            try {
+//                this.flushPage(pageId);
+//                this.bufferPages.remove(pageId);
+//                break;
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                throw new DbException("Could not flush page");
+//            }
+//        }
+        Object[] pageIds = this.bufferPages.keySet().toArray();
+        PageId victim = (PageId) pageIds[(int) Math.floor(Math.random() * pageIds.length)];
+
+        try {
+            this.flushPage(victim);
+            this.bufferPages.remove(victim);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new DbException("Could not flush page");
+        }
     }
 
 }
