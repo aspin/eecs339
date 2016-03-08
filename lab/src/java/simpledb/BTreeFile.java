@@ -649,24 +649,25 @@ public class BTreeFile implements DbFile {
         // Move some of the tuples from the sibling to the page so
 		// that the tuples are evenly distributed. Be sure to update
 		// the corresponding parent entry.
-        int target = 0;
+        int target = (page.getNumTuples() + sibling.getNumTuples()) / 2;
 
         Iterator<Tuple> iterator = null;
         if (isRightSibling) {
             iterator = sibling.iterator();
-            target = (int) Math.floor((page.getNumTuples() + sibling.getNumTuples()) / 2.0);
         } else {
             iterator = sibling.reverseIterator();
-            target = (int) Math.ceil((page.getNumTuples() + sibling.getNumTuples()) / 2.0);
         }
 
+        Tuple tuple = null;
         while (page.getNumTuples() < target) {
-            Tuple tuple = iterator.next();
+            tuple = iterator.next();
             sibling.deleteTuple(tuple);
             page.insertTuple(tuple);
         }
 
-        entry.setKey(sibling.iterator().next().getField(this.keyField));
+        if (isRightSibling) { tuple = iterator.next(); }
+
+        entry.setKey(tuple.getField(this.keyField));
         parent.updateEntry(entry);
 	}
 
@@ -791,7 +792,6 @@ public class BTreeFile implements DbFile {
 		// the corresponding parent entry. Be sure to update the parent
 		// pointers of all children in the entries that were moved.
 
-        // I dont pass tests
         int target = (int) Math.floor((page.getNumEntries() + rightSibling.getNumEntries()) / 2.0);
 
         // these page iterators are inefficient...oh well
@@ -802,7 +802,7 @@ public class BTreeFile implements DbFile {
             parent.updateEntry(rightEntry);
             rightSibling.deleteKeyAndLeftChild(entry);
             entry.setLeftChild(entry.getLeftChild());
-            entry.setRightChild(page.iterator().next().getRightChild());
+            entry.setRightChild(page.reverseIterator().next().getRightChild());
             page.insertEntry(entry);
 
         }
