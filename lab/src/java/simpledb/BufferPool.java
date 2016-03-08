@@ -187,9 +187,8 @@ public class BufferPool {
      */
     private void markDirty(TransactionId transcationId, ArrayList<Page> pages) {
         for(Page page : pages) {
-            HeapPage heapPage = (HeapPage) page;
-            heapPage.markDirty(true, transcationId);
-            this.bufferPages.put(heapPage.getId(), heapPage);
+            page.markDirty(true, transcationId);
+            this.bufferPages.put(page.getId(), page);
         }
     }
 

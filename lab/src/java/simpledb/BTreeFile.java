@@ -256,16 +256,47 @@ public class BTreeFile implements DbFile {
 	 */
 	protected BTreeLeafPage splitLeafPage(TransactionId tid, HashMap<PageId, Page> dirtypages, BTreeLeafPage page, Field field) 
 			throws DbException, IOException, TransactionAbortedException {
-		// some code goes here
-        // YOUR CODE HERE:
         // Split the leaf page by adding a new page on the right of the existing
 		// page and moving half of the tuples to the new page.  Copy the middle key up
 		// into the parent page, and recursively split the parent as needed to accommodate
 		// the new entry.  getParentWithEmtpySlots() will be useful here.  Don't forget to update
 		// the sibling pointers of all the affected leaf pages.  Return the page into which a 
 		// tuple with the given key field should be inserted.
-        return null;
-		
+
+        BTreeLeafPage newPage = (BTreeLeafPage) this.getEmptyPage(tid, dirtypages, BTreePageId.LEAF);
+
+        newPage.setLeftSiblingId(page.getId());
+        BTreeLeafPage oldRightSibling = null;
+        if (page.getRightSiblingId() != null) {
+            oldRightSibling = (BTreeLeafPage) this.getPage(tid, dirtypages, page.getRightSiblingId(), Permissions.READ_WRITE);
+            oldRightSibling.setLeftSiblingId(newPage.getId());
+            newPage.setRightSiblingId(page.getRightSiblingId());
+        }
+        page.setRightSiblingId(newPage.getId());
+
+        Iterator<Tuple> reverseIterator = page.reverseIterator();
+        int halfTupleCount = (int) Math.ceil(page.getNumTuples() / 2.0);
+        for(int i = 0; i < halfTupleCount; i++) {
+            Tuple tuple = reverseIterator.next();
+            page.deleteTuple(tuple);
+            newPage.insertTuple(tuple);
+        }
+
+        Field middleVal = newPage.iterator().next().getField(keyField);
+        BTreeInternalPage parent = this.getParentWithEmptySlots(tid, dirtypages, page.getParentId(), middleVal);
+        page.setParentId(parent.getId());
+        newPage.setParentId(parent.getId());
+        parent.insertEntry(new BTreeEntry(middleVal, page.getId(), newPage.getId()));
+
+//        dirtypages.put(page.getId(), page);
+//        dirtypages.put(newPage.getId(), newPage);
+//        dirtypages.put(parent.getId(), parent);
+
+        if (field.compare(Op.GREATER_THAN_OR_EQ, middleVal)) {
+            return newPage;
+        } else {
+            return page;
+        }
 	}
 	
 	/**
@@ -293,8 +324,6 @@ public class BTreeFile implements DbFile {
 	protected BTreeInternalPage splitInternalPage(TransactionId tid, HashMap<PageId, Page> dirtypages, 
 			BTreeInternalPage page, Field field) 
 					throws DbException, IOException, TransactionAbortedException {
-		// some code goes here
-        // YOUR CODE HERE:
         // Split the internal page by adding a new page on the right of the existing
 		// page and moving half of the entries to the new page.  Push the middle key up
 		// into the parent page, and recursively split the parent as needed to accommodate
@@ -302,7 +331,36 @@ public class BTreeFile implements DbFile {
 		// the parent pointers of all the children moving to the new page.  updateParentPointers()
 		// will be useful here.  Return the page into which an entry with the given key field
 		// should be inserted.
-		return null;
+        BTreeInternalPage newPage = (BTreeInternalPage) this.getEmptyPage(tid, dirtypages, BTreePageId.INTERNAL);
+
+        Iterator<BTreeEntry> reverseIterator = page.reverseIterator();
+        int halfEntryCount = page.getNumEntries() / 2;
+        for(int i = 0; i < halfEntryCount; i++) {
+            BTreeEntry entry = reverseIterator.next();
+            page.deleteKeyAndRightChild(entry);
+            newPage.insertEntry(entry);
+        }
+
+        BTreeEntry middleEntry = reverseIterator.next();
+        BTreeInternalPage parent = this.getParentWithEmptySlots(tid, dirtypages, page.getParentId(), middleEntry.getKey());
+        parent.insertEntry(new BTreeEntry(middleEntry.getKey(), page.getId(), newPage.getId()));
+
+        page.setParentId(parent.getId());
+        newPage.setParentId(parent.getId());
+        page.deleteKeyAndRightChild(middleEntry);
+
+        this.updateParentPointers(tid, dirtypages, page);
+        this.updateParentPointers(tid, dirtypages, newPage);
+
+//        dirtypages.put(page.getId(), page);
+//        dirtypages.put(newPage.getId(), newPage);
+//        dirtypages.put(parent.getId(), parent);
+
+        if (field.compare(Op.GREATER_THAN_OR_EQ, middleEntry.getKey())) {
+            return newPage;
+        } else {
+            return page;
+        }
 	}
 	
 	/**
