@@ -1,0 +1,21 @@
+Lab 3: SimpleDB
+Kevin Chen
+
+# Notes on Design Decisions or API Changes
+
+## Java Versions
+As in lab 1 & 2, I'm using Java 8, and changed the `sourceversion` property in the Ant `build.xml` to `1.8`.
+
+I'm not using any Java8 specific methods though, but I haven't tested for backward compatibility if I downgraded to 1.6 for just these tests.
+
+# API Changes
+I made no changes
+
+# Tests
+I don't think `ant test` or `ant systest` pass properly (because there's a bunch of tests that aren't applicable to this lab), so I've included a script that runs all the ones from this lab. It can be run via `./runalltests.sh`
+
+# Missing / Incomplete Elements
+I'm pretty sure I've completed this lab.
+
+# Lab Difficulty
+This was probably the easiest lab.

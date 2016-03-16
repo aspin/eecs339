@@ -197,13 +197,12 @@ public class BTreeFile implements DbFile {
 
         if (pid.pgcateg() == BTreePageId.LEAF) {
             BTreeLeafPage leafPage = (BTreeLeafPage) this.getPage(tid, dirtypages, pid, perm);
-            // leftmost?
+            // leftmost
             return leafPage;
         } else if (pid.pgcateg() == BTreePageId.INTERNAL) {
             BTreeInternalPage internalPage = (BTreeInternalPage) this.getPage(tid, dirtypages, pid, Permissions.READ_ONLY);
             Iterator<BTreeEntry> iterator = internalPage.iterator();
             BTreeEntry entry = null;
-
             while (iterator.hasNext()) {
                 entry = iterator.next();
                 if (f == null || entry.getKey().compare(Op.GREATER_THAN_OR_EQ, f)) {
@@ -262,14 +261,13 @@ public class BTreeFile implements DbFile {
 		// the new entry.  getParentWithEmtpySlots() will be useful here.  Don't forget to update
 		// the sibling pointers of all the affected leaf pages.  Return the page into which a 
 		// tuple with the given key field should be inserted.
-
         BTreeLeafPage newPage = (BTreeLeafPage) this.getEmptyPage(tid, dirtypages, BTreePageId.LEAF);
 
         newPage.setLeftSiblingId(page.getId());
-        BTreeLeafPage oldRightSibling = null;
+        BTreeLeafPage originalRightSibling = null;
         if (page.getRightSiblingId() != null) {
-            oldRightSibling = (BTreeLeafPage) this.getPage(tid, dirtypages, page.getRightSiblingId(), Permissions.READ_WRITE);
-            oldRightSibling.setLeftSiblingId(newPage.getId());
+            originalRightSibling = (BTreeLeafPage) this.getPage(tid, dirtypages, page.getRightSiblingId(), Permissions.READ_WRITE);
+            originalRightSibling.setLeftSiblingId(newPage.getId());
             newPage.setRightSiblingId(page.getRightSiblingId());
         }
         page.setRightSiblingId(newPage.getId());
@@ -287,10 +285,6 @@ public class BTreeFile implements DbFile {
         page.setParentId(parent.getId());
         newPage.setParentId(parent.getId());
         parent.insertEntry(new BTreeEntry(middleVal, page.getId(), newPage.getId()));
-
-//        dirtypages.put(page.getId(), page);
-//        dirtypages.put(newPage.getId(), newPage);
-//        dirtypages.put(parent.getId(), parent);
 
         if (field.compare(Op.GREATER_THAN_OR_EQ, middleVal)) {
             return newPage;
@@ -351,10 +345,6 @@ public class BTreeFile implements DbFile {
 
         this.updateParentPointers(tid, dirtypages, page);
         this.updateParentPointers(tid, dirtypages, newPage);
-
-//        dirtypages.put(page.getId(), page);
-//        dirtypages.put(newPage.getId(), newPage);
-//        dirtypages.put(parent.getId(), parent);
 
         if (field.compare(Op.GREATER_THAN_OR_EQ, middleEntry.getKey())) {
             return newPage;
@@ -665,9 +655,11 @@ public class BTreeFile implements DbFile {
             page.insertTuple(tuple);
         }
 
-        if (isRightSibling) { tuple = iterator.next(); }
-
-        entry.setKey(tuple.getField(this.keyField));
+		if (isRightSibling) {
+			entry.setKey(iterator.next().getField(this.keyField));
+		} else {
+			entry.setKey(tuple.getField(this.keyField));
+		}
         parent.updateEntry(entry);
 	}
 
@@ -798,16 +790,14 @@ public class BTreeFile implements DbFile {
         Iterator<BTreeEntry> iterator = rightSibling.iterator();
         while (page.getNumEntries() < target) {
             BTreeEntry entry = iterator.next();
-            rightEntry.setKey(entry.getKey());
-            parent.updateEntry(rightEntry);
             rightSibling.deleteKeyAndLeftChild(entry);
             entry.setLeftChild(entry.getLeftChild());
             entry.setRightChild(page.reverseIterator().next().getRightChild());
             page.insertEntry(entry);
 
         }
-//        rightEntry.setKey(rightSibling.iterator().next().getKey());
-//        parent.updateEntry(rightEntry);
+        rightEntry.setKey(rightSibling.iterator().next().getKey());
+        parent.updateEntry(rightEntry);
 
         this.updateParentPointers(tid, dirtypages, page);
 	}
